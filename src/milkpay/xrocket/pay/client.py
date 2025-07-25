@@ -45,7 +45,7 @@ class PayXRocket(Stollen):
         if pay_key is not None:
             fields.append(Header(name="Rocket-Pay-Key", value=pay_key))
 
-        subdomain: str = "pay" if production else "dev-pay"
+        subdomain: str = "pay" if production else "pay.st"
         super().__init__(
             base_url=f"https://{subdomain}.xrocket.tg",
             error_message_key=["message"],
