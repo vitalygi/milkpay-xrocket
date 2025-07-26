@@ -235,6 +235,50 @@ class TradeXRocket(Stollen):
 
         return await self(call)
 
+    async def get_crypto_rates_in_fiat(
+        self,
+        *,
+        cryptos: list[str],
+        fiat: str,
+        fail_on_error: bool = True,
+    ) -> list[RateCryptoFiatDto]:
+        """
+        Returns rates for multiple crypto currencies in fiat
+        
+        Args:
+            cryptos: List of crypto currency codes
+            fiat: Fiat currency code
+            fail_on_error: If True, raises exception on any error. 
+                          If False, skips failed requests and returns only successful ones.
+        
+        Returns:
+            List of RateCryptoFiatDto objects for successful requests
+            
+        Raises:
+            TradeXRocketError: If fail_on_error=True and any API request fails
+            UnknownAPIKeyError: If fail_on_error=True and API key is invalid
+            Exception: If fail_on_error=True and any other error occurs during request
+        """
+        import asyncio
+        from typing import cast
+        
+        async def get_single_rate(crypto: str) -> Optional[RateCryptoFiatDto]:
+            try:
+                return await self.get_crypto_rate_in_fiat(crypto=crypto, fiat=fiat)
+            except Exception as e:
+                if fail_on_error:
+                    # Re-raise the original exception (TradeXRocketError or other API errors)
+                    raise e
+                return None
+        
+        tasks = [get_single_rate(crypto) for crypto in cryptos]
+        results = await asyncio.gather(*tasks, return_exceptions=not fail_on_error)
+        
+        if fail_on_error:
+            return cast(list[RateCryptoFiatDto], results)
+        else:
+            return [result for result in results if result is not None]
+
     async def get_crypto_rate_in_crypto(
         self,
         *,
@@ -253,6 +297,50 @@ class TradeXRocket(Stollen):
         )
 
         return await self(call)
+
+    async def get_crypto_rates_in_crypto(
+        self,
+        *,
+        base_cryptos: list[str],
+        quote: str,
+        fail_on_error: bool = True,
+    ) -> list[RateCryptoCryptoDto]:
+        """
+        Returns rates for multiple base crypto currencies in quote crypto currency
+        
+        Args:
+            base_cryptos: List of base crypto currency codes
+            quote: Quote crypto currency code
+            fail_on_error: If True, raises exception on any error. 
+                          If False, skips failed requests and returns only successful ones.
+        
+        Returns:
+            List of RateCryptoCryptoDto objects for successful requests
+            
+        Raises:
+            TradeXRocketError: If fail_on_error=True and any API request fails
+            UnknownAPIKeyError: If fail_on_error=True and API key is invalid
+            Exception: If fail_on_error=True and any other error occurs during request
+        """
+        import asyncio
+        from typing import cast
+        
+        async def get_single_rate(base: str) -> Optional[RateCryptoCryptoDto]:
+            try:
+                return await self.get_crypto_rate_in_crypto(base=base, quote=quote)
+            except Exception as e:
+                if fail_on_error:
+                    # Re-raise the original exception (TradeXRocketError or other API errors)
+                    raise e
+                return None
+        
+        tasks = [get_single_rate(base) for base in base_cryptos]
+        results = await asyncio.gather(*tasks, return_exceptions=not fail_on_error)
+        
+        if fail_on_error:
+            return cast(list[RateCryptoCryptoDto], results)
+        else:
+            return [result for result in results if result is not None]
 
     async def get_time_series(
         self,
