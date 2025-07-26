@@ -262,7 +262,7 @@ class TradeXRocket(Stollen):
         import asyncio
         from typing import cast
         
-        async def get_single_rate(crypto: str) -> Optional[RateCryptoFiatDto]:
+        async def get_single_rate(crypto: str) -> Optional["RateCryptoFiatDto"]:
             try:
                 return await self.get_crypto_rate_in_fiat(crypto=crypto, fiat=fiat)
             except Exception as e:
@@ -275,7 +275,7 @@ class TradeXRocket(Stollen):
         results = await asyncio.gather(*tasks, return_exceptions=not fail_on_error)
         
         if fail_on_error:
-            return cast(list[RateCryptoFiatDto], results)
+            return cast(list["RateCryptoFiatDto"], results)
         else:
             return [result for result in results if result is not None]
 
@@ -325,7 +325,7 @@ class TradeXRocket(Stollen):
         import asyncio
         from typing import cast
         
-        async def get_single_rate(base: str) -> Optional[RateCryptoCryptoDto]:
+        async def get_single_rate(base: str) -> Optional["RateCryptoCryptoDto"]:
             try:
                 return await self.get_crypto_rate_in_crypto(base=base, quote=quote)
             except Exception as e:
@@ -338,7 +338,7 @@ class TradeXRocket(Stollen):
         results = await asyncio.gather(*tasks, return_exceptions=not fail_on_error)
         
         if fail_on_error:
-            return cast(list[RateCryptoCryptoDto], results)
+            return cast(list["RateCryptoCryptoDto"], results)
         else:
             return [result for result in results if result is not None]
 
