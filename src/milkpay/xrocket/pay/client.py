@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from hashlib import sha256
 from hmac import HMAC
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from stollen import Stollen
 from stollen.requests.fields import Header, RequestField
@@ -31,15 +31,27 @@ if TYPE_CHECKING:
 class PayXRocket(Stollen):
     pay_key: Optional[str]
     production: bool
+    currency_aliases: Optional[Dict[str, str]]
 
     def __init__(
         self,
         pay_key: Optional[str] = None,
         production: bool = True,
+        currency_aliases: Optional[Dict[str, str]] = None,
         **stollen_kwargs: Any,
     ) -> None:
+        """
+        Initialize Pay XRocket client.
+        
+        Args:
+            pay_key: Your Pay API key
+            production: Whether to use production environment
+            currency_aliases: Optional custom currency aliases (e.g., {"TON": "TONCOIN"})
+            **stollen_kwargs: Additional arguments for Stollen client
+        """
         self.pay_key = pay_key
         self.production = production
+        self.currency_aliases = currency_aliases
 
         fields: list[RequestField] = []
         if pay_key is not None:
@@ -95,11 +107,13 @@ class PayXRocket(Stollen):
         """
         Create multi-cheque
         """
-
         from .methods import CreateCheque
+        from .utils import normalize_currency
+
+        normalized_currency = normalize_currency(currency, self.currency_aliases)
 
         call: CreateCheque = CreateCheque(
-            currency=currency,
+            currency=normalized_currency,
             cheque_per_user=cheque_per_user,
             users_number=users_number,
             ref_program=ref_program,
@@ -212,6 +226,25 @@ class PayXRocket(Stollen):
 
         return await self(call)
 
+    async def get_balance_by_currency(
+            self,
+            currency: str,
+    ):
+        """
+        Returns balance by currency
+        """
+        from .utils import normalize_currency
+
+        normalized_currency = normalize_currency(currency, self.currency_aliases)
+
+        app_info = await self.get_app_info()
+        if not app_info.balances:
+            raise PayXRocketError("No balances found for the app.")
+        for balance in app_info.balances:
+            if balance.currency == normalized_currency:
+                return balance.balance
+        raise PayXRocketError(f"No balance found for currency: {normalized_currency}")
+        
     async def transfer(
         self,
         *,
@@ -224,12 +257,13 @@ class PayXRocket(Stollen):
         """
         Make transfer of funds to another user
         """
-
         from .methods import Transfer
+        from .utils import normalize_currency
+        normalized_currency = normalize_currency(currency, self.currency_aliases)
 
         call: Transfer = Transfer(
             tg_user_id=tg_user_id,
-            currency=currency,
+            currency=normalized_currency,
             amount=amount,
             transfer_id=transfer_id,
             description=description,
@@ -250,13 +284,15 @@ class PayXRocket(Stollen):
         """
         Make withdrawal of funds to external wallet
         """
-
         from .methods import Withdrawal
+        from .utils import normalize_currency
+
+        normalized_currency = normalize_currency(currency, self.currency_aliases)
 
         call: Withdrawal = Withdrawal(
             network=network,
             address=address,
-            currency=currency,
+            currency=normalized_currency,
             amount=amount,
             withdrawal_id=withdrawal_id,
             comment=comment,
@@ -289,11 +325,15 @@ class PayXRocket(Stollen):
         """
         Returns withdrawal fees
         """
-
         from .methods import GetWithdrawalFees
+        from .utils import normalize_currency
+
+        normalized_currency = None
+        if currency is not None:
+            normalized_currency = normalize_currency(currency, self.currency_aliases)
 
         call: GetWithdrawalFees = GetWithdrawalFees(
-            currency=currency,
+            currency=normalized_currency,
         )
 
         return await self(call)
@@ -315,14 +355,17 @@ class PayXRocket(Stollen):
         """
         Create invoice
         """
-
         from .methods import CreateInvoice
+        from .utils import normalize_currency
+
+
+        normalized_currency = normalize_currency(currency, self.currency_aliases)
 
         call: CreateInvoice = CreateInvoice(
             amount=amount,
             min_payment=min_payment,
             num_payments=num_payments,
-            currency=currency,
+            currency=normalized_currency,
             description=description,
             hidden_message=hidden_message,
             comments_enabled=comments_enabled,
@@ -411,13 +454,15 @@ class PayXRocket(Stollen):
         """
         Create subscription
         """
-
         from .methods import CreateSubscription
+        from .utils import normalize_currency
+
+        normalized_currency = normalize_currency(currency, self.currency_aliases)
 
         call: CreateSubscription = CreateSubscription(
             name=name,
             description=description,
-            currency=currency,
+            currency=normalized_currency,
             interval=interval,
             tg_resource=tg_resource,
             referral_percent=referral_percent,
