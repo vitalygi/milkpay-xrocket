@@ -108,7 +108,7 @@ class PayXRocket(Stollen):
         Create multi-cheque
         """
         from .methods import CreateCheque
-        from .utils import normalize_currency
+        from ..utils import normalize_currency
 
         normalized_currency = normalize_currency(currency, self.currency_aliases)
 
@@ -233,7 +233,7 @@ class PayXRocket(Stollen):
         """
         Returns balance by currency
         """
-        from .utils import normalize_currency
+        from ..utils import normalize_currency
 
         normalized_currency = normalize_currency(currency, self.currency_aliases)
 
@@ -258,7 +258,7 @@ class PayXRocket(Stollen):
         Make transfer of funds to another user
         """
         from .methods import Transfer
-        from .utils import normalize_currency
+        from ..utils import normalize_currency
         normalized_currency = normalize_currency(currency, self.currency_aliases)
 
         call: Transfer = Transfer(
@@ -285,7 +285,7 @@ class PayXRocket(Stollen):
         Make withdrawal of funds to external wallet
         """
         from .methods import Withdrawal
-        from .utils import normalize_currency
+        from ..utils import normalize_currency
 
         normalized_currency = normalize_currency(currency, self.currency_aliases)
 
@@ -326,7 +326,7 @@ class PayXRocket(Stollen):
         Returns withdrawal fees
         """
         from .methods import GetWithdrawalFees
-        from .utils import normalize_currency
+        from ..utils import normalize_currency
 
         normalized_currency = None
         if currency is not None:
@@ -356,7 +356,7 @@ class PayXRocket(Stollen):
         Create invoice
         """
         from .methods import CreateInvoice
-        from .utils import normalize_currency
+        from ..utils import normalize_currency
 
 
         normalized_currency = normalize_currency(currency, self.currency_aliases)
@@ -455,7 +455,7 @@ class PayXRocket(Stollen):
         Create subscription
         """
         from .methods import CreateSubscription
-        from .utils import normalize_currency
+        from ..utils import normalize_currency
 
         normalized_currency = normalize_currency(currency, self.currency_aliases)
 

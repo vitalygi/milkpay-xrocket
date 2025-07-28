@@ -227,9 +227,12 @@ class TradeXRocket(Stollen):
         """
 
         from .methods import GetCryptoRateInFiat
+        from ..utils import normalize_currency
+
+        normalized_crypto = normalize_currency(crypto)
 
         call: GetCryptoRateInFiat = GetCryptoRateInFiat(
-            crypto=crypto,
+            crypto=normalized_crypto,
             fiat=fiat,
         )
 
